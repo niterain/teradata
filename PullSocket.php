@@ -16,7 +16,7 @@ class PullSocket implements iPullSocket, Iterator {
             $json = json_decode($cnt = file_get_contents($fileName), true);
 
             if (!empty($json['data'])) {
-                $this->data = $json['data'];
+                $this->data['urls'] = $json['data'];
             }
         } else {
             throw new \Exception('file does not exists.');
@@ -30,12 +30,12 @@ class PullSocket implements iPullSocket, Iterator {
     public function getInformation()
     {
         $this->numberOfRequests++;
-        $file = new \SplFileObject($this->data[$this->key()]['url']);
+        $file = new \SplFileObject($this->data['urls'][$this->key()]['url']);
         $fp = fopen($this->key().'-'.$file->getFilename(), 'w');
-        $this->data[$this->key()]['size'] = 0;
+        $this->data['urls'][$this->key()]['size'] = 0;
         while(!$file->eof()) {
             fwrite($fp, $string = $file->fgets());
-            $this->data[$this->key()]['size'] += strlen($string);
+            $this->data['urls'][$this->key()]['size'] += strlen($string);
         }
         fclose($fp);
         return $file;
@@ -48,8 +48,9 @@ class PullSocket implements iPullSocket, Iterator {
      */
     public function copyTo($fileName)
     {
+        $this->data['numberOfRequests'] = $this->numberOfRequests;
         try {
-            $fp = fopen($fileName, 'a+');
+            $fp = fopen($fileName, 'w');
             fwrite($fp, json_encode($this->data));
             fclose($fp);
         } catch (\Exception $e) {
@@ -111,7 +112,7 @@ class PullSocket implements iPullSocket, Iterator {
      */
     public function valid()
     {
-        return ($this->id < count($this->data));
+        return ($this->id < count($this->data['urls']));
     }
 
     /**
