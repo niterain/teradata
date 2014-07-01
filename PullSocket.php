@@ -48,10 +48,14 @@ class PullSocket implements iPullSocket, Iterator {
      */
     public function copyTo($fileName)
     {
-        $this->data['numberOfRequests'] = $this->numberOfRequests;
         try {
             $fp = fopen($fileName, 'w');
-            fwrite($fp, json_encode($this->data));
+            if ($this->numberOfRequests == 1) {
+                fwrite($fp, $this->data['urls'][0]['size']."\n");
+            } else {
+                $this->data['numberOfRequests'] = $this->numberOfRequests;
+                fwrite($fp, json_encode($this->data, JSON_PRETTY_PRINT));
+            }
             fclose($fp);
         } catch (\Exception $e) {
             return 0;
